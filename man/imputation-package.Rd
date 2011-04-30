@@ -16,9 +16,9 @@ missing data by taking the mean of the missing variable among the k neighbors.
 \tabular{ll}{
 Package: \tab imputation\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2011-04-28\cr
-License: \tab What license is it under?\cr
+Version: \tab 1.1\cr
+Date: \tab 2011-04-30\cr
+License: \tab GPL\cr
 LazyLoad: \tab yes\cr
 }
 }

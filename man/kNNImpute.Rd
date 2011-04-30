@@ -7,9 +7,8 @@ k-NN Imputation
 Imputation using k nearest neighbors
 }
 \usage{
-kNNImpute(x, k)
+kNNImpute(x, k, verbose=T)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
 Numeric data matrix containing missing values
@@ -17,11 +16,15 @@ Numeric data matrix containing missing values
   \item{k}{
 The number of neighbors to use for k-NN
 }
+  \item{verbose}{
+Logical.  If true, print updates about the status of kNNImpute
+}
 }
 \details{
-Identifies observations, x, that have missing data.  Finds the k nearest 
-observations to x and computes the mean of the feature that is missing.  
-Replaces the missing value with this mean.
+Identifies observations, x, that have missing data.  If column j of observation 
+x is missing, finds the k nearest observations to x that have non-missing 
+values in j.  Among this set, use the mean of j to fill the missing value in x.
+Reports warnings if an entire row is missing.
 }
 \value{
 The imputed data matrix
@@ -42,7 +45,7 @@ x = matrix(rnorm(30),10,3)
 x[2,3] = NA
 x[5,1] = NA
 x[2,2] = NA
-x.imputed = kNNImpute(x,3)
+x.imputed = kNNImpute(x,2)
 }
 \keyword{ k-NN }
 \keyword{ impute }

@@ -7,63 +7,84 @@
   else {
     x.svd = svd(x, nu=k, nv=k)
   }
-  x.svd$u[,1:k] %*% diag(x.svd$d[1:k]) %*% t(x.svd$v[,1:k])
+  x.svd$u %*% diag(x.svd$d[1:k],nrow=k,ncol=k) %*% t(x.svd$v)
 }
 
-SVDImpute = function(x, k, num.iters = 10, gpu=F) {
+SVDImpute = function(x, k, num.iters = 10, gpu=F, verbose=T) {
   if(gpu) {
     stop("no gpu support yet")
   }
   missing.matrix = is.na(x)
-  if(sum(missing.matrix) == 0) {
+  numMissing = sum(missing.matrix)
+  print(paste("imputing on", numMissing, "missing values with matrix size",
+    length(as.vector(x)), sep=" "))
+  if(numMissing == 0) {
     return (x)
   }
-  x = apply(rbind(1:ncol(x),x), 2, function(j) {
-    colindex = j[1]
-    x.original = j[-1]
-    missing.indices = which(missing.matrix[,colindex])
-    x.original[missing.indices] = mean(x.original[-missing.indices])
-    x.original
+  missing.cols.indices = which(apply(missing.matrix, 2, function(i) {
+    any(i)
+  }))
+  x.missing = (rbind(1:ncol(x), x))[,missing.cols.indices]
+  x.missing.imputed = apply(x.missing, 2, function(j) {
+    colIndex = j[1]
+    j.original = j[-1]
+    missing.rows = which(missing.matrix[,colIndex])
+    if(length(missing.rows) == nrow(x))
+      warning( paste("Column",colIndex,"is completely missing",sep=" ") )
+    j.original[missing.rows] = mean(j.original[-missing.rows])
+    j.original
   })
+  x[,missing.cols.indices] = x.missing.imputed
+  missing.matrix = is.na(x)
+  x[missing.matrix] = 0
   for(i in 1:num.iters) {
+    if(verbose) print(paste("Running iteration", i, sep=" "))
     x.svd = .rankKapprox(x, k, gpu)
     x[missing.matrix] = x.svd[missing.matrix]
   }
   return (x)
 }
 
-kNNImpute = function(x, k) {
+kNNImpute = function(x, k, verbose=T) {
+  if(k >= nrow(x))
+    stop("k must be less than the number of rows in x")
   missing.matrix = is.na(x)
-  if(sum(missing.matrix) == 0) {
+  numMissing = sum(missing.matrix)
+  print(paste("imputing on", numMissing, "missing values with matrix size",
+    length(as.vector(x)), sep=" "))
+  if(numMissing == 0) {
     return (x)
   }
-  missing.rows = apply(missing.matrix, 1, function(i) {
+  
+  missing.rows.indices = which(apply(missing.matrix, 1, function(i) {
     any(i)
-  })
-  missing.rows.indices = which(missing.rows)
-
-  x.dist = as.matrix(dist(x, upper=T))
-
-  x.imputedrows = t(sapply(missing.rows.indices, function(i) {
-    missing.cols = missing.matrix[i,]
-    
-    neighbors.ranks.indices = order(x.dist[i,])
-    k.neighbors = neighbors.ranks.indices[2:(k+1)]
-
-    #get neighbors' values for missing variable
-    neighbors.missing = x[k.neighbors, missing.cols] 
-    if(k > 1 ) {
-      if(sum(missing.cols) > 1)  #multiple missing values
-        x[i, missing.cols] = apply(neighbors.missing, 2, mean)
-      else  #only 1 missing value
-        x[i, missing.cols] = mean(neighbors.missing)
-    }
-    else {  #k = 1, just take missing values from nearest neighbor
-      x[i, missing.cols] = neighbors.missing
-    }
-    x[i,]
   }))
-  x[missing.rows.indices,] = x.imputedrows
+  x.missing = (cbind(1:nrow(x),x))[missing.rows.indices,]
+  x.missing.imputed = t(apply(x.missing, 1, function(i) {
+    rowIndex = i[1]
+    i.original = i[-1]
+    if(verbose) print(paste("Imputing row", rowIndex,sep=" "))
+    missing.cols = which(missing.matrix[rowIndex,])
+    if(length(missing.cols) == ncol(x))
+      warning( paste("Row",rowIndex,"is completely missing",sep=" ") )
+    imputed.values = sapply(missing.cols, function(j) {
+      #find neighbors that have data on the jth column
+      neighbor.indices = which(!missing.matrix[,j])
+      #compute distance to these neighbors
+      neighbor.dist = as.matrix(dist(rbind(i.original, x[neighbor.indices,]),upper=T))
+      #order the neighbors to find the closest ones
+      knn.ranks = order(neighbor.dist[1,])
+      #identify the row number in the original data matrix of the knn
+      knn = neighbor.indices[(knn.ranks[2:(k+1)])-1]
+      mean(x[knn,j])
+    })
+    i.original[missing.cols] = imputed.values
+    i.original
+  }))
+  x[missing.rows.indices,] = x.missing.imputed
+
+  missing.matrix = is.na(x)
+  x[missing.matrix] = 0
+
   return (x)
 }
-

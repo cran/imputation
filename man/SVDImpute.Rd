@@ -7,7 +7,7 @@ SVD Imputation
 Multiple imputation using the SVD
 }
 \usage{
-SVDImpute(x, k, num.iters = 10, gpu)
+SVDImpute(x, k, num.iters = 10, gpu, verbose=T)
 }
 \arguments{
   \item{x}{
@@ -24,13 +24,17 @@ Maximum number of iterations to use
 Logical.  If true, use CUDA accelerated functions to calculate the SVD.
 Only useful for very large inputs
 }
+  \item{verbose}{
+Logical.  If true, print updates about the status of SVDImpute
+}
 }
 \details{
 Identifies elements of x that are NA and initializes them to the mean
-of that feature.  Computes the rank k SVD of the matrix, then replaces
+of that column.  Computes the rank k SVD of the matrix, then replaces
 the original missing values with those determined by the SVD.  Calculates
 the SVD again on the imputed matrix and replaces missing values until 
-convergence.
+convergence.  Reports warnings if an entire column is missing, and hence
+cannot be imputed using the mean.
 }
 \value{
 The imputed data matrix
