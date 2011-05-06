@@ -27,7 +27,8 @@ values in j.  Among this set, use the mean of j to fill the missing value in x.
 Reports warnings if an entire row is missing.
 }
 \value{
-The imputed data matrix
+\item{x }{The imputed data matrix}
+\item{missing.matrix }{A matrix of logicals displaying the location of the original missing values}
 }
 \references{
 }
@@ -38,7 +39,7 @@ Jeffrey Wong
 }
 
 \seealso{
-SVDImpute
+SVDImpute, SVTImpute
 }
 \examples{
 x = matrix(rnorm(30),10,3)

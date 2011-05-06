@@ -30,14 +30,15 @@ Logical.  If true, print updates about the status of SVDImpute
 }
 \details{
 Identifies elements of x that are NA and initializes them to the mean
-of that column.  Computes the rank k SVD of the matrix, then replaces
+of that column.  Computes the rank-k SVD of the matrix, then replaces
 the original missing values with those determined by the SVD.  Calculates
 the SVD again on the imputed matrix and replaces missing values until 
 convergence.  Reports warnings if an entire column is missing, and hence
 cannot be imputed using the mean.
 }
 \value{
-The imputed data matrix
+\item{x }{The imputed data matrix}
+\item{missing.matrix }{A matrix of logicals displaying the location of the original missing values}
 }
 \references{
 }
@@ -48,7 +49,7 @@ Jeffrey Wong
 }
 
 \seealso{
-kNNImpute
+kNNImpute, SVTImpute
 }
 \examples{
 x = matrix(rnorm(30),10,3)
