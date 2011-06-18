@@ -19,11 +19,14 @@ The maximum number of neighbors that should be attempted
 }
 \details{
 Erases data at random and attempts kNN imputation to restore the matrix.
-The mean absolute error is used to determine what value of k gives the
+The mean relative absolute error is used to determine what value of k gives the
 best results.
 }
 \value{
-The optimal value of k
+\item{k }{The optimal number of neighbors to use determined by cross validation}
+\item{mae }{The mean relative absolute error when using k neighbors}
+\item{k.full }{All values of k that were attempted}
+\item{mae.full }{All mean relative absolute errors that were inspected}
 }
 \references{
 
@@ -44,7 +47,7 @@ x[1,1] = NA
 x[5,8] = NA
 x[2,3] = NA
 x[7,7] = NA
-k = cv.kNNImpute(x)
+k = cv.kNNImpute(x)$k
 kNNImpute(x, k)
 }
 

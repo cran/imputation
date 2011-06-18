@@ -19,20 +19,26 @@ A vector representing the range of lambdas that should be tested
 }
 \details{
 Erases data at random and attempts SVT imputation to restore the matrix.
-The mean absolute error is used to determine what value of lambda gives the
+The mean relative absolute error is used to determine what value of lambda gives the
 best results.
+
+lambda represents the shrinkage parameter when computing the SVD.  The data matrix
+is factored into X = UDV', and the singular values are shrunk by computing max(0, s-lambda)
+where s is a singular value of X.  The matrix is restored by multiplying U Dshrink V'
 }
 \value{
-The optimal value of lambda
+\item{lambda }{The optimal lambda to use determined by cross validation}
+\item{mae }{The mean relative absolute error when using lambda}
+\item{lambda.full }{All values of lambda that were attempted}
+\item{mae.full }{All mean relative absolute errors that were inspected}
 }
 \references{
-
+http://www-stat.stanford.edu/~candes/papers/SVT.pdf
 }
 \author{
 Jeffrey Wong
 }
 \note{
-
 }
 
 \seealso{
@@ -44,6 +50,6 @@ x[1,1] = NA
 x[5,8] = NA
 x[2,3] = NA
 x[7,7] = NA
-lambda = cv.SVTImpute(x)
+lambda = cv.SVTImpute(x)$lambda
 SVTImpute(x, lambda)
 }

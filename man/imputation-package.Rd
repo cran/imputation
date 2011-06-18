@@ -17,8 +17,8 @@ variable among the k neighbors.
 \tabular{ll}{
 Package: \tab imputation\cr
 Type: \tab Package\cr
-Version: \tab 1.2\cr
-Date: \tab 2011-05-06\cr
+Version: \tab 1.3\cr
+Date: \tab 2011-06-18\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
 }
@@ -28,7 +28,7 @@ Very few functions:
   \item SVDImpute - SVD Imputation
   \item cv.SVDImpute - Cross validation to determine optimal k for SVD Imputation
   \item SVTImpute - Singular Value Thresholding Imputation
-  \item cv.SVDImpute - Cross validation to determine optimal lambda for SVT Imputation
+  \item cv.SVTImpute - Cross validation to determine optimal lambda for SVT Imputation
   \item kNNImpute - k Nearest Neighbors Imputation
   \item cv.kNNImpute - Cross validation to determine optimal k for kNN Imputation
 }

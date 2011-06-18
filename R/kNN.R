@@ -2,9 +2,11 @@ kNNImpute = function(x, k, verbose=T) {
   if(k >= nrow(x))
     stop("k must be less than the number of rows in x")
   missing.matrix = is.na(x)
-  numMissing = sum(missing.matrix)
-  print(paste("imputing on", numMissing, "missing values with matrix size",
-    nrow(x)*ncol(x), sep=" "))
+  numMissing = sum(missing.matrix) 
+  if(verbose) {
+    print(paste("imputing on", numMissing, "missing values with matrix size",
+      nrow(x)*ncol(x), sep=" "))
+  }
   if(numMissing == 0) {
     return (x)
   }
@@ -63,10 +65,11 @@ cv.kNNImpute = function(x, k.max=5) {
 
   absolute.error = sapply(1:k.max, function(i) {
     x.imputed = kNNImpute(x.train, i, verbose=F)$x
-    mae = abs(x[remove.indices] - x.imputed[remove.indices])
+    mae = abs((x[remove.indices] - x.imputed[remove.indices]) / x[remove.indices] )
   })
   mae = apply(absolute.error, 2, function(j) {
     mean(j)
   })
-  which.min(mae)
+  list(k = which.min(mae), mae = mae[which.min(mae)],
+    k.full = 1:k.max, mae.full = mae)
 }

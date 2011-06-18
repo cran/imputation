@@ -16,8 +16,10 @@ SVDImpute = function(x, k, num.iters = 10, gpu=F, verbose=T) {
   }
   missing.matrix = is.na(x)
   numMissing = sum(missing.matrix)
-  print(paste("imputing on", numMissing, "missing values with matrix size",
-    nrow(x)*ncol(x), sep=" "))
+  if(verbose) {
+    print(paste("imputing on", numMissing, "missing values with matrix size",
+      nrow(x)*ncol(x), sep=" "))
+  }
   if(numMissing == 0) {
     return (x)
   }
@@ -48,9 +50,14 @@ SVDImpute = function(x, k, num.iters = 10, gpu=F, verbose=T) {
   ))
 }
 
-cv.SVDImpute = function(x, k.max=10) {
+cv.SVDImpute = function(x, k.max=floor(ncol(x)/2)) {
+  if(k.max > ncol(x)) {
+    stop("Rank-k approximation cannot exceed the number
+      of columns of x")
+  }
   n = nrow(x) * ncol(x)
   missing.matrix = is.na(x)
+  if(sum(missing.matrix) == 0) stop("No missing data")
   valid.data = which(!missing.matrix)
 
   remove.indices = sample(valid.data, 1/3*length(valid.data))
@@ -59,19 +66,22 @@ cv.SVDImpute = function(x, k.max=10) {
 
   absolute.error = sapply(1:k.max, function(i) {
     x.imputed = SVDImpute(x.train, i, verbose=F)$x
-    mae = abs(x[remove.indices] - x.imputed[remove.indices])
+    mae = abs( (x[remove.indices] - x.imputed[remove.indices]) / x[remove.indices] )
   })
   mae = apply(absolute.error, 2, function(j) {
     mean(j)
   })
-  which.min(mae)
+  list(k = which.min(mae), mae = mae[which.min(mae)],
+    k.full = 1:k.max, mae.full = mae)
 }
 
 SVTImpute = function(x, lambda, verbose=F) {
   missing.matrix = is.na(x)
   numMissing = sum(missing.matrix)
-  print(paste("imputing on", numMissing, "missing values with matrix size",
-    nrow(x)*ncol(x), sep=" "))
+  if(verbose) {
+    print(paste("imputing on", numMissing, "missing values with matrix size",
+      nrow(x)*ncol(x), sep=" "))
+  }
   if(numMissing == 0) {
     return (x)
   }
@@ -89,6 +99,8 @@ SVTImpute = function(x, lambda, verbose=F) {
     j.original
   })
   x[,missing.cols.indices] = x.missing.imputed
+
+  #Things that could not be imputed in the initial round should be set to 0
   missing.matrix2 = is.na(x)
   x[missing.matrix2] = 0
    
@@ -100,9 +112,9 @@ SVTImpute = function(x, lambda, verbose=F) {
   } else {
     d.augmented = x.svd$d - lambda
   }
-  x.imputed = x.svd$u %*% diag(d.augmented) %*% x.svd$v
+  x[missing.matrix] = (x.svd$u %*% diag(d.augmented) %*% t(x.svd$v))[missing.matrix]
   return( list(
-    x=x.imputed,
+    x=x,
     missing.matrix = missing.matrix
   ))
 }
@@ -110,6 +122,7 @@ SVTImpute = function(x, lambda, verbose=F) {
 cv.SVTImpute = function(x, lambda.range = seq(0,1,length.out=101)) {
   n = nrow(x) * ncol(x)
   missing.matrix = is.na(x)
+  if(sum(missing.matrix) == 0) stop("No missing data")
   valid.data = which(!missing.matrix)
 
   remove.indices = sample(valid.data, 1/3*length(valid.data))
@@ -118,11 +131,12 @@ cv.SVTImpute = function(x, lambda.range = seq(0,1,length.out=101)) {
 
   absolute.error = sapply(lambda.range, function(i) {
     x.imputed = SVTImpute(x.train, i, verbose=F)$x
-    mae = abs(x[remove.indices] - x.imputed[remove.indices])
+    mae = abs( (x[remove.indices] - x.imputed[remove.indices]) / x[remove.indices] )
   })
   mae = apply(absolute.error, 2, function(j) {
     mean(j)
   })
-  which.min(mae)
+  list(lambda = lambda.range[which.min(mae)], mae = mae[which.min(mae)],
+    lambda.full = lambda.range, mae.full = mae)
 }
 
