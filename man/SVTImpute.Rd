@@ -1,54 +1,38 @@
 \name{SVTImpute}
 \alias{SVTImpute}
-\title{
-SVT Imputation
-}
-\description{
-Imputation using Singular Value Thresholding
-}
+\title{SVT Imputation}
 \usage{
-SVTImpute(x, lambda, verbose = F)
+  SVTImpute(x, lambda, stepsize, threshold = 0.001,
+    max.iters = 10, verbose = F)
 }
 \arguments{
-  \item{x}{
-Numeric matrix containing some missing data.  Each row is an observation
-and the columns are features of the data
-}
-  \item{lambda}{
-A tuning parameter used for thresholding.  See details
-}
-  \item{verbose}{
-Logical.  If true, print updates about the status of SVTImpute
-}
-}
-\details{
-Uses Singular Value Thresholding for Imputation.  Computes the SVD of x and
-an augmented singular value matrix by subtracting lambda from each singular 
-value of x.  If this results in any values less than 0, set these values equal
-to 0.  Reconstruct x by multiplying through the SVD using the augmented singular
-value matrix.
-}
-\value{
-\item{x }{The imputed data matrix}
-\item{missing.matrix }{A matrix of logicals displaying the location of the original missing values}
-}
-\references{
-Emmanuel Candes, Stanford University
-}
-\author{
-Jeffrey Wong
-}
-\note{
+  \item{x}{a data frame or matrix with size n1 x n2 where
+  each row represents a different record}
 
-}
+  \item{lambda}{the penalty on the singular values}
 
-\seealso{
-kNNImpute, SVDImpute
+  \item{stepsize}{optional.  If not provided, uses 1.2 *
+  (n1 * n2) / (number of missing elements)}
+
+  \item{threshold}{convergence threshold}
+
+  \item{max.iters}{maximum number of iterations.  Note that
+  each iteration will require computing an SVD}
+
+  \item{verbose}{if TRUE print status updates}
+}
+\description{
+  Imputation using Singular Value Thresholding a la Cai,
+  Candes, Shen.
 }
 \examples{
-x = matrix(rnorm(30),10,3)
-x[2,3] = NA
-x[5,1] = NA
-x[2,2] = NA
-x.imputed = SVTImpute(x,0.1)
+x = matrix(rnorm(100),10,10)
+  x.missing = x > 1
+  x[x.missing] = NA
+  SVTImpute(x, 3)
 }
+\references{
+  A Singular Value Thresholding Algorithm for Matrix
+  Completion. Cai, Candes, Shen.
+}
+
